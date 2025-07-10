@@ -1,0 +1,7 @@
+.ipynb_checkpoints/prototype-checkpoint.ipynb
+.ipynb_checkpoints/prototype-nn-checkpoint.ipynb
+.ipynb_checkpoints/scanner_learning-checkpoint.ipynb
+.ipynb_checkpoints/scanner-checkpoint.ipynb
+notebook/wine_env
+notebook/venv
+**/.ipynb_checkpoints/**
