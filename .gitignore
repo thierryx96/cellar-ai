@@ -5,3 +5,12 @@
 notebook/wine_env
 notebook/venv
 **/.ipynb_checkpoints/**
+__pycache__/menu_grouper.cpython-312.pyc
+__pycache__/menu_token_enrichor.cpython-312.pyc
+__pycache__/menu_token_extractor.cpython-312.pyc
+__pycache__/menu_token_grouper.cpython-312.pyc
+__pycache__/robust_text_generator.cpython-312.pyc
+__pycache__/text_generator.cpython-312.pyc
+__pycache__/token_enrichor.cpython-312.pyc
+__pycache__/token_extractor.cpython-312.pyc
+config/__pycache__/wine.cpython-312.pyc
