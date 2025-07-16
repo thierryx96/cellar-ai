@@ -76,5 +76,7 @@ class StoreLoader:
       df = pd.merge(df, pd.read_csv(file), how='outer')
 
     df.columns = df.columns.str.lower()
+    df.columns = df.columns.str.strip()
+
     return df
 

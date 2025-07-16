@@ -2,7 +2,6 @@
 import pandas as pd
 from store.store_loader import StoreLoader, extract_varietal, extract_year
 
-
 class WinemagLoader(StoreLoader):
     """
     Class to load and process Vivino wine data.
@@ -33,8 +32,8 @@ class WinemagLoader(StoreLoader):
         # title                     object
 
         df = df.rename(columns={'description': 'note', 'designation' : 'description'})
-        str_cols = ['note', 'description', 'country', 'title', 'variety', 'winery']
-        df[str_cols] = df[str_cols].astype(str)
+        str_cols = ['note', 'description', 'country', 'title', 'variety', 'winery', 'region_1', 'region_2']
+        df[str_cols] = df[str_cols].astype('string')
 
 
 
@@ -42,27 +41,34 @@ class WinemagLoader(StoreLoader):
         # df[['type', 'variety']] = pd.DataFrame(df['description'].apply(extract_varietal).tolist(), index=df.index)
 
         def combine_description(row):
-            if pd.notna(row['title']) and row['description'] in row['title']:
-                return row['title'] 
-            elif pd.notna(row['description']) and row['title'] not in row['description']:
-                return row['description'] 
-            elif pd.notna(row['title']) and pd.notna(row['description']):
-                return row['title'] + ' ' + row['description']
+          if pd.notna(row['title']) and pd.notna(row['description']):
+            if row['description'] in row['title']:
+              return row['title']
+            elif row['title'] not in row['description']: 
+              return row['title'] + ' ' + row['description']
+            else:
+              return row['description']
+          
+          elif pd.notna(row['title']):
+              return row['title']
+          
+          elif pd.notna(row['description']):
+              return row['description']
 
 
-        df['description'] = df.apply(combine_description, axis=1)
+        df['description'] = df.apply(combine_description, axis=1).astype('string')
 
         # df['description'] = df['description'].str.lower()
 
-        df['year'] = df['description'].apply(extract_year)
+        df['year'] = df['description'].apply(lambda x: extract_year(x) if pd.notna(x) else None).astype('Int16')
+        # df['year'] = df['year'].astype('Int16')
 
-        df[['type', 'variety_2']] = pd.DataFrame(df['description'].apply(extract_varietal).tolist(), index=df.index)
+        df[['type', 'variety_2']] = pd.DataFrame(df['description'].apply(lambda x: extract_varietal(x) if pd.notna(x) else (None, None)).tolist(), index=df.index)
 
-        df[['type_2', 'variety_3']] = pd.DataFrame(df['variety'].apply(extract_varietal).tolist(), index=df.index)
+        df[['type_2', 'variety_3']] = pd.DataFrame(df['variety'].apply(lambda x: extract_varietal(x) if pd.notna(x) else (None, None)).tolist(), index=df.index)
 
-
-        df['variety'] = df['variety_2'].combine_first(df['variety_3']).combine_first(df['variety'])
-        df['type'] = df['type'].combine_first(df['type_2'])
+        df['variety'] = df['variety_2'].combine_first(df['variety_3']).combine_first(df['variety']).astype('string')
+        df['type'] = df['type'].combine_first(df['type_2']).astype('string')
 
         df = df.drop(['type_2', 'variety_2', 'variety_3', 'taster_name', 'taster_twitter_handle'], axis=1)
 
