@@ -7,6 +7,37 @@ RED_REGEX = re.compile(r'\b(' + '|'.join(re.escape(varietal.lower()) for varieta
 WHITE_REGEX = re.compile(r'\b(' + '|'.join(re.escape(varietal.lower()) for varietal in WHITE_VARIETALS) + r')\b', re.IGNORECASE)
 YEAR_REGEX = re.compile(r'\b(\d{4})\b')
 
+COUNTRY_PATTERNS = {pattern.lower(): country.lower() for country, data in COUNTRIES.items() for pattern in data['patterns']}
+
+WINE_DTYPES = {
+  'country'     : 'category',      # categorical for repeated values
+  'region'      : 'string',
+  'year'        : 'Int16',
+  'rank'        : 'Float32',
+  'winery'      : 'string',
+  'description' : 'string',
+  'type'        : 'category',      # categorical for repeated values
+  'variety'     : 'category', 
+  'price'       : 'Float32',       # float32 for currency precision
+}
+
+
+def extract_country(text):
+    if not text:
+        return
+    
+    text = text.strip().lower()
+    
+    # ISO search
+    if text in COUNTRIES.keys():
+        return text
+    
+    # pattern match
+    matches = [country for pattern, country in COUNTRY_PATTERNS.items() if text.startswith(pattern)]
+
+    if any(matches): 
+        return matches[0]
+    
 def extract_year(text):
     if not text:
         return

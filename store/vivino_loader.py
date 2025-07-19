@@ -1,7 +1,7 @@
 
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from store.store_loader import StoreLoader, extract_varietal, extract_year
+from store.store_loader import WINE_DTYPES, StoreLoader, extract_country, extract_varietal, extract_year
 
 class VivinoLoader(StoreLoader):
     """
@@ -36,11 +36,15 @@ class VivinoLoader(StoreLoader):
 
         # Type and varietal
         df = df.rename(columns={'wine': 'description'})
-        df = df.dropna(subset=['description'])
+        df = df.dropna(subset=['description', 'country'])
+
         df[['type', 'variety']] = pd.DataFrame(df['description'].apply(extract_varietal).tolist(), index=df.index)
 
+        # Country
+        df['country'] = df['country'].apply(lambda x: extract_country(x) if pd.notna(x) else None).astype('string')
+
         # Cleanup / types
-        str_cols = ['description', 'country', 'region', 'variety', 'winery', 'type']
+        str_cols = [k for k, v in WINE_DTYPES.items() if v == 'string']
         df[str_cols] = df[str_cols].astype('string')
         df = df.drop('wine id', axis=1)
 

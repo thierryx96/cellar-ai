@@ -1,6 +1,6 @@
 
 import pandas as pd
-from store.store_loader import StoreLoader, extract_varietal, extract_year
+from store.store_loader import WINE_DTYPES, StoreLoader, extract_country, extract_varietal, extract_year
 
 class WinemagLoader(StoreLoader):
     """
@@ -31,10 +31,13 @@ class WinemagLoader(StoreLoader):
         # taster_twitter_handle     object
         # title                     object
 
-        df = df.rename(columns={'description': 'note', 'designation' : 'description'})
-        str_cols = ['note', 'description', 'country', 'title', 'variety', 'winery', 'region_1', 'region_2']
+        df = df.rename(columns={'description': 'note', 'designation' : 'description', 'province' : 'region'})
+        str_cols = [k for k, v in WINE_DTYPES.items() if v == 'string']
         df[str_cols] = df[str_cols].astype('string')
 
+        # Country
+        df = df.dropna(subset=['country'])
+        df['country'] = df['country'].apply(lambda x: extract_country(x) if pd.notna(x) else None).astype('string')
 
 
         # df.dtypes.head(20)
@@ -55,25 +58,17 @@ class WinemagLoader(StoreLoader):
           elif pd.notna(row['description']):
               return row['description']
 
-
         df['description'] = df.apply(combine_description, axis=1).astype('string')
 
-        # df['description'] = df['description'].str.lower()
-
         df['year'] = df['description'].apply(lambda x: extract_year(x) if pd.notna(x) else None).astype('Int16')
-        # df['year'] = df['year'].astype('Int16')
 
         df[['type', 'variety_2']] = pd.DataFrame(df['description'].apply(lambda x: extract_varietal(x) if pd.notna(x) else (None, None)).tolist(), index=df.index)
-
         df[['type_2', 'variety_3']] = pd.DataFrame(df['variety'].apply(lambda x: extract_varietal(x) if pd.notna(x) else (None, None)).tolist(), index=df.index)
 
         df['variety'] = df['variety_2'].combine_first(df['variety_3']).combine_first(df['variety']).astype('string')
         df['type'] = df['type'].combine_first(df['type_2']).astype('string')
 
         df = df.drop(['type_2', 'variety_2', 'variety_3', 'taster_name', 'taster_twitter_handle'], axis=1)
-
-
-        # # Cleanups
 
         # scaler = MinMaxScaler(feature_range=(0.5, ))
         df['rank'] = df['points'] / 100.0
